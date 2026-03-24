@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="mg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur Malagasy—ISPM</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b6cb0'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='34'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f8;
+    --border: #d7dbe7;
+    --accent: #b7791f;
+    --accent2: #0f8a5f;
+    --accent3: #c53030;
+    --accent4: #2b6cb0;
+    --text: #1b1f2a;
+    --text-dim: #5a647a;
+    --positive: #4be8a8;
+    --negative: #e84b6e;
+    --neutral: #e8b84b;
+    --radius: 10px;
+    --font-body: 'Nunito', sans-serif;
+    --font-editor: 'Libre Baskerville', serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: radial-gradient(circle at 20% -20%, #e9f0ff 0%, #f8f9fd 34%, var(--bg) 100%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 10px 30px rgba(20, 36, 82, 0.06);
+  }
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(135deg, #2b6cb0, #63b3ed);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(43, 108, 176, 0.28);
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .logo small {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-dim);
+    display: block;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+  }
+  .header-badges {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: var(--surface2);
+    cursor: default;
+  }
+  .badge.active { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ── Layout principal ── */
+  .main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: 1fr;
+    gap: 0;
+    height: calc(100vh - 58px);
+  }
+
+  /* ── Zone éditeur ── */
+  .editor-zone {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f6f8fd 100%);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(14, 31, 75, 0.05);
+  }
+  .btn:hover { background: #e9edf8; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible {
+    outline: 3px solid rgba(43, 108, 176, 0.23);
+    outline-offset: 1px;
+  }
+  .btn.primary { background: var(--accent); color: #111; border-color: var(--accent); }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn.success { background: rgba(75,232,168,0.15); border-color: var(--accent2); color: var(--accent2); }
+  .btn.danger { background: rgba(232,75,110,0.15); border-color: var(--accent3); color: var(--accent3); }
+  .btn.info { background: rgba(75,155,232,0.15); border-color: var(--accent4); color: var(--accent4); }
+
+  .btn.icon {
+    padding: 6px 10px;
+    min-width: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #editor {
+    flex: 1;
+    padding: 32px;
+    font-family: var(--font-editor);
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--text);
+    background: #fbfcff;
+    border: none;
+    outline: none;
+    resize: none;
+    width: 100%;
+    overflow-y: auto;
+  }
+  #editor::placeholder { color: var(--text-dim); font-style: italic; }
+
+  /* Surlignage des erreurs */
+  .error-underline { border-bottom: 2px solid var(--accent3); }
+  .phonotactic-underline { border-bottom: 2px solid var(--neutral); }
+
+  /* ── Autocomplete dropdown ── */
+  #autocomplete-dropdown {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 16px 30px rgba(20, 40, 80, 0.14);
+    z-index: 1000;
+    min-width: 180px;
+    display: none;
+    overflow: hidden;
+  }
+  .ac-item {
+    padding: 9px 14px;
+    cursor: pointer;
+    font-family: var(--font-editor);
+    font-size: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: background 0.1s;
+  }
+  .ac-item:hover, .ac-item.selected { background: var(--surface2); }
+  .ac-item .ac-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--bg);
+    margin-left: auto;
+  }
+  .ac-item .ac-type.next { color: var(--accent2); }
+  .ac-item .ac-type.comp { color: var(--accent4); }
+
+  /* ── Panneau droit ── */
+  .panel {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 6px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab.active { background: linear-gradient(180deg, rgba(43,108,176,0.08), rgba(43,108,176,0.02)); }
+
+  .tab-content { display: none; padding: 16px; flex: 1; }
+  .tab-content.active { display: block; }
+
+  /* ── Cartes résultats ── */
+  .result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 16px rgba(15, 30, 70, 0.06);
+  }
+  .result-card h4 {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  /* Sentiment */
+  .sentiment-meter {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+  .sentiment-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s, background 0.5s;
+  }
+  .sentiment-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  .sentiment-label .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .sentiment-label.positif .dot { background: var(--positive); }
+  .sentiment-label.positif { color: var(--positive); }
+  .sentiment-label.négatif .dot { background: var(--negative); }
+  .sentiment-label.négatif { color: var(--negative); }
+  .sentiment-label.neutre .dot { background: var(--neutral); }
+  .sentiment-label.neutre { color: var(--neutral); }
+
+  /* Spell errors */
+  .error-item {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent3);
+    background: rgba(232,75,110,0.08);
+    font-size: 13px;
+  }
+  .error-item.phonotactics {
+    border-left-color: var(--neutral);
+    background: rgba(232,184,75,0.08);
+  }
+  .error-word { font-family: var(--font-editor); font-weight: 700; color: var(--accent3); }
+  .error-suggestions { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .error-suggestions span {
+    display: inline-block;
+    background: var(--surface);
+    padding: 1px 7px;
+    border-radius: 4px;
+    margin: 2px 2px 2px 0;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    font-family: var(--font-editor);
+    transition: all 0.1s;
+  }
+  .error-suggestions span:hover { background: var(--accent); color: #111; }
+
+  /* NER entities */
+  .entity-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    margin: 3px;
+    cursor: default;
+  }
+  .entity-tag .et-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .et-VILLE { background: rgba(75,155,232,0.2); color: var(--accent4); }
+  .et-PERSONNE { background: rgba(75,232,168,0.2); color: var(--accent2); }
+  .et-ORGANISATION { background: rgba(232,184,75,0.2); color: var(--accent); }
+  .et-PROBABLE_NOM_PROPRE { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+  /* Lemmatisation */
+  .lemma-result {
+    font-family: var(--font-editor);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .lemma-method {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .verb-form-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .verb-form-item:last-child { border-bottom: none; }
+  .vf-word { font-family: var(--font-editor); color: var(--accent2); font-weight: 700; min-width: 100px; }
+  .vf-type { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-box {
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-box .val {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--accent);
+    font-family: var(--font-mono);
+  }
+  .stat-box .lbl {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* ── Chatbot ── */
+  .chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+  .msg {
+    max-width: 90%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+  .msg.user {
+    background: var(--accent);
+    color: #111;
+    align-self: flex-end;
+    font-weight: 600;
+  }
+  .msg.bot {
+    background: var(--surface2);
+    color: var(--text);
+    align-self: flex-start;
+  }
+  .msg.bot strong { color: var(--accent2); }
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+  }
+  .chat-input-row input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+  }
+  .chat-input-row input:focus { border-color: var(--accent); }
+
+  /* Loader */
+  .loading {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Word tooltip */
+  #word-tooltip {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    z-index: 2000;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    display: none;
+    font-size: 13px;
+  }
+  #word-tooltip .wt-word {
+    font-family: var(--font-editor);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  #word-tooltip .wt-def { color: var(--text); line-height: 1.5; }
+  #word-tooltip .wt-actions { margin-top: 10px; display: flex; gap: 8px; }
+  #word-tooltip .wt-close {
+    position: absolute; top: 8px; right: 10px;
+    cursor: pointer; color: var(--text-dim); font-size: 16px;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 24px 0;
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .word-count-bar {
+    padding: 6px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    display: flex;
+    gap: 16px;
+  }
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  .hint-row {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-family: var(--font-editor);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 12px 0 6px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  @media (max-width: 1080px) {
+    .main {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+    .editor-zone {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      min-height: 55vh;
+    }
+    .panel { min-height: 45vh; }
+    .header-badges { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="app-icon" aria-hidden="true">📖</div>
+    <div class="logo">
+      Teny<span>AI</span>
+      <small>ISPM · Éditeur Malagasy Augmenté</small>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge active" id="badge-dict">📚 Dict: chargement...</span>
+    <span class="badge active">🔤 N-gram</span>
+    <span class="badge active">🔍 NER</span>
+    <span class="badge active">💬 Sentiment</span>
+    <span class="badge active">✏️ Lemma</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Éditeur -->
+  <div class="editor-zone">
+    <div class="toolbar">
+      <button class="btn primary" onclick="runFullAnalysis()">⚡ Analyser tout</button>
+      <button class="btn success" onclick="runSpellCheck()">✔ Orthographe</button>
+      <button class="btn info" onclick="runSentiment()">❤ Sentiment</button>
+      <button class="btn info" onclick="runNER()">🏙 Entités</button>
+      <button class="btn" onclick="clearEditor()">🗑 Effacer</button>
+      <button class="btn" onclick="loadSample()">📄 Exemple</button>
+      <span class="hint-row"><span class="kbd">Ctrl</span><span class="kbd">Enter</span> analyser</span>
+    </div>
+
+    <textarea id="editor"
+      placeholder="Soraty eto ny lahatsoratr'anao malagasy...&#10;Écrivez ici votre texte en malagasy..."
+      spellcheck="false"
+      autocorrect="off"
+      autocapitalize="off"
+    ></textarea>
+
+    <div class="word-count-bar">
+      <span id="wc-words">0 mots</span>
+      <span id="wc-chars">0 caractères</span>
+      <span id="wc-sentences">0 phrases</span>
+      <span id="autocomplete-hint" style="margin-left:auto; color: var(--accent2);"></span>
+    </div>
+  </div>
+
+  <!-- Panneau droit -->
+  <div class="panel">
+    <div class="panel-tabs">
+      <div class="tab active" onclick="showTab('tab-spell')">✔ Ortho</div>
+      <div class="tab" onclick="showTab('tab-nlp')">🧠 NLP</div>
+      <div class="tab" onclick="showTab('tab-lemma')">📖 Lemma</div>
+      <div class="tab" onclick="showTab('tab-chat')">💬 Chat</div>
+    </div>
+
+    <!-- Onglet Orthographe -->
+    <div class="tab-content active" id="tab-spell">
+      <div id="spell-results">
+        <div class="empty-state">Cliquez sur "Analyser tout" ou "Orthographe" pour vérifier votre texte.</div>
+      </div>
+    </div>
+
+    <!-- Onglet NLP -->
+    <div class="tab-content" id="tab-nlp">
+      <div id="nlp-results">
+        <div class="empty-state">Lancez une analyse pour voir les résultats NLP.</div>
+      </div>
+    </div>
+
+    <!-- Onglet Lemmatisation -->
+    <div class="tab-content" id="tab-lemma">
+      <div class="result-card">
+        <h4>Lemmatiser un mot</h4>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input id="lemma-input" type="text" placeholder="ex: mianatra"
+            style="flex:1; background:var(--bg); border:1px solid var(--border);
+                   border-radius:6px; padding:8px 12px; color:var(--text);
+                   font-family:var(--font-editor); font-size:15px; outline:none;"
+            onkeydown="if(event.key==='Enter') lemmatizeWord()"
+          >
+          <button class="btn primary" onclick="lemmatizeWord()">→</button>
+          <button class="btn info icon" title="Écouter" onclick="speakFromInput('lemma-input')">🔊</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input id="translate-input" type="text" placeholder="ex: fitiavana (traduction)"
+            style="flex:1; background:var(--bg); border:1px solid var(--border);
+                   border-radius:6px; padding:8px 12px; color:var(--text);
+                   font-family:var(--font-editor); font-size:15px; outline:none;"
+            onkeydown="if(event.key==='Enter') translateWord()"
+          >
+          <button class="btn info" onclick="translateWord()">🌐</button>
+          <button class="btn info icon" title="Écouter" onclick="speakFromInput('translate-input')">🔊</button>
+        </div>
+      </div>
+      <div id="lemma-results">
+        <div class="empty-state">Entrez un mot à lemmatiser ou traduire.</div>
+      </div>
+    </div>
+
+    <!-- Onglet Chatbot -->
+    <div class="tab-content" id="tab-chat">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg bot">Salama! 👋 Je suis votre assistant malagasy.<br><br>
+Posez-moi des questions comme:<br>
+• <em>synonymes de tsara</em><br>
+• <em>conjugaison de mianatra</em><br>
+• <em>définition de fitiavana</em><br>
+• <em>racine de mahafinaritra</em></div>
+      </div>
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Posez votre question..."
+          onkeydown="if(event.key==='Enter') sendChat()"
+        >
+        <button class="btn primary" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="autocomplete-dropdown"></div>
+
+<!-- Word tooltip (clic droit) -->
+<div id="word-tooltip">
+  <span class="wt-close" onclick="hideTooltip()">×</span>
+  <div class="wt-word" id="wt-word"></div>
+  <div class="wt-def" id="wt-def"></div>
+  <div class="wt-actions">
+    <button class="btn info icon" onclick="speakWord(document.getElementById('wt-word').textContent)">🔊 Écouter</button>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:5000/api';
+
+// ─── Initialisation ───────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const res = await fetch(`${API}/status`);
+    const data = await res.json();
+    document.getElementById('badge-dict').textContent = `📚 Dict: ${data.dictionary_size} mots`;
+  } catch(e) {
+    document.getElementById('badge-dict').textContent = '⚠️ Serveur hors ligne';
+    document.getElementById('badge-dict').style.color = '#e84b6e';
+  }
+}
+
+// ─── TTS (écouter) ─────────────────────────────────────────────────────────
+
+let ttsAudio = null;
+let ttsObjectUrl = null;
+
+async function speakWord(word) {
+  const text = (word || '').trim();
+  if (!text) return;
+
+  try {
+    if (ttsAudio) {
+      ttsAudio.pause();
+      ttsAudio.currentTime = 0;
+      ttsAudio = null;
+    }
+    if (ttsObjectUrl) {
+      URL.revokeObjectURL(ttsObjectUrl);
+      ttsObjectUrl = null;
+    }
+
+    const res = await fetch(`${API}/tts`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text})
+    });
+
+    if (!res.ok) {
+      let msg = 'TTS indisponible';
+      try { msg = (await res.json()).error || msg; } catch(e) {}
+      alert(msg);
+      return;
+    }
+
+    const blob = await res.blob();
+    ttsObjectUrl = URL.createObjectURL(blob);
+    ttsAudio = new Audio(ttsObjectUrl);
+    ttsAudio.onended = () => {
+      if (ttsObjectUrl) URL.revokeObjectURL(ttsObjectUrl);
+      ttsObjectUrl = null;
+      ttsAudio = null;
+    };
+    await ttsAudio.play();
+  } catch(e) {
+    alert("Erreur TTS: " + e.message);
+  }
+}
+
+function speakFromInput(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  speakWord(el.value);
+}
+
+// ─── Éditeur: compteurs en temps réel ────────────────────────────────────
+
+const editor = document.getElementById('editor');
+let autocompleteTimeout;
+let lastAutocompleteText = '';
+
+editor.addEventListener('input', () => {
+  updateWordCount();
+  // Déclenchement autocomplete avec délai
+  clearTimeout(autocompleteTimeout);
+  autocompleteTimeout = setTimeout(triggerAutocomplete, 400);
+});
+
+editor.addEventListener('keydown', handleEditorKey);
+
+editor.addEventListener('contextmenu', (e) => {
+  const word = getWordAtCursor();
+  if (word) {
+    e.preventDefault();
+    showWordTooltip(word, e.clientX, e.clientY);
+  }
+});
+
+function updateWordCount() {
+  const text = editor.value;
+  const words = text.trim() ? text.trim().split(/\s+/) : [];
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  document.getElementById('wc-words').textContent = `${words.length} mots`;
+  document.getElementById('wc-chars').textContent = `${text.length} caractères`;
+  document.getElementById('wc-sentences').textContent = `${sentences.length} phrases`;
+}
+
+function getWordAtCursor() {
+  const pos = editor.selectionStart;
+  const text = editor.value;
+  let start = pos, end = pos;
+  while (start > 0 && /\w/.test(text[start-1])) start--;
+  while (end < text.length && /\w/.test(text[end])) end++;
+  return text.slice(start, end) || null;
+}
+
+// ─── Autocomplete ─────────────────────────────────────────────────────────
+
+async function triggerAutocomplete() {
+  const text = editor.value;
+  if (text === lastAutocompleteText || text.length < 2) {
+    hideAutocomplete(); return;
+  }
+  lastAutocompleteText = text;
+
+  try {
+    const res = await fetch(`${API}/autocomplete`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text})
+    });
+    const data = await res.json();
+    showAutocomplete(data);
+  } catch(e) {}
+}
+
+let selectedAcIndex = -1;
+let acItems = [];
+
+function showAutocomplete(data) {
+  const dropdown = document.getElementById('autocomplete-dropdown');
+  const items = [];
+
+  if (data.autocomplete && data.autocomplete.length > 0) {
+    data.autocomplete.slice(0, 4).forEach(w => {
+      items.push({word: w, type: 'comp', label: 'complétion'});
+    });
+  }
+  if (data.next_word && data.next_word.length > 0) {
+    data.next_word.slice(0, 3).forEach(w => {
+      if (!items.find(i => i.word === w)) {
+        items.push({word: w, type: 'next', label: 'suivant'});
+      }
+    });
+  }
+
+  if (items.length === 0) { hideAutocomplete(); return; }
+
+  acItems = items;
+  selectedAcIndex = -1;
+
+  dropdown.innerHTML = items.map((item, i) => `
+    <div class="ac-item" data-index="${i}" onclick="applyAutocomplete(${i})">
+      ${item.word}
+      <span class="ac-type ${item.type}">${item.label}</span>
+    </div>
+  `).join('');
+
+  // Position relative au curseur
+  const rect = editor.getBoundingClientRect();
+  dropdown.style.left = `${rect.left + 32}px`;
+  dropdown.style.top = `${rect.top + 200}px`;
+  dropdown.style.display = 'block';
+}
+
+function hideAutocomplete() {
+  document.getElementById('autocomplete-dropdown').style.display = 'none';
+  acItems = [];
+  selectedAcIndex = -1;
+}
+
+function applyAutocomplete(index) {
+  const item = acItems[index];
+  if (!item) return;
+
+  const text = editor.value;
+  const endsWithSpace = text.endsWith(' ') || text.endsWith('\n');
+
+  if (endsWithSpace) {
+    editor.value = text + item.word + ' ';
+  } else {
+    // Remplacer le mot partiel courant
+    const words = text.split(' ');
+    words[words.length - 1] = item.word;
+    editor.value = words.join(' ') + ' ';
+  }
+
+  editor.focus();
+  hideAutocomplete();
+  updateWordCount();
+}
+
+function handleEditorKey(e) {
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    runFullAnalysis();
+    return;
+  }
+
+  const dropdown = document.getElementById('autocomplete-dropdown');
+  if (dropdown.style.display !== 'block') return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedAcIndex = Math.min(selectedAcIndex + 1, acItems.length - 1);
+    updateAcSelection();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedAcIndex = Math.max(selectedAcIndex - 1, 0);
+    updateAcSelection();
+  } else if (e.key === 'Tab' || e.key === 'Enter') {
+    if (selectedAcIndex >= 0) {
+      e.preventDefault();
+      applyAutocomplete(selectedAcIndex);
+    }
+  } else if (e.key === 'Escape') {
+    hideAutocomplete();
+  }
+}
+
+function updateAcSelection() {
+  document.querySelectorAll('.ac-item').forEach((el, i) => {
+    el.classList.toggle('selected', i === selectedAcIndex);
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#autocomplete-dropdown') && e.target !== editor) {
+    hideAutocomplete();
+  }
+});
+
+// ─── Analyses ────────────────────────────────────────────────────────────
+
+async function runFullAnalysis() {
+  const text = editor.value.trim();
+  if (!text) { alert('Veuillez écrire du texte d\'abord!'); return; }
+
+  showTab('tab-nlp');
+
+  const nlpDiv = document.getElementById('nlp-results');
+  nlpDiv.innerHTML = '<div class="empty-state">Analyse en cours... <span class="loading"></span></div>';
+
+  try {
+    const res = await fetch(`${API}/full_analysis`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text})
+    });
+    const data = await res.json();
+
+    renderSpell(data.spellcheck);
+    renderNLP(data.sentiment, data.ner, data.stats);
+  } catch(e) {
+    nlpDiv.innerHTML = `<div class="empty-state" style="color:var(--accent3)">Erreur: ${e.message}</div>`;
+  }
+}
+
+async function runSpellCheck() {
+  const text = editor.value.trim();
+  if (!text) return;
+  showTab('tab-spell');
+
+  const div = document.getElementById('spell-results');
+  div.innerHTML = '<div class="empty-state">Vérification... <span class="loading"></span></div>';
+
+  const res = await fetch(`${API}/spellcheck`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text})
+  });
+  const data = await res.json();
+  renderSpell(data);
+}
+
+async function runSentiment() {
+  const text = editor.value.trim();
+  if (!text) return;
+  showTab('tab-nlp');
+  const res = await fetch(`${API}/sentiment`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text})
+  });
+  const sent = await res.json();
+  renderNLP(sent, null, null);
+}
+
+async function runNER() {
+  const text = editor.value.trim();
+  if (!text) return;
+  showTab('tab-nlp');
+  const res = await fetch(`${API}/ner`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text})
+  });
+  const ner = await res.json();
+  renderNLP(null, ner, null);
+}
+
+function renderSpell(data) {
+  const div = document.getElementById('spell-results');
+  if (!data || !data.errors || data.errors.length === 0) {
+    div.innerHTML = '<div class="empty-state" style="color:var(--accent2)">✅ Aucune erreur détectée!</div>';
+    return;
+  }
+
+  const html = data.errors.map(e => `
+    <div class="error-item ${e.type === 'phonotactics' ? 'phonotactics' : ''}">
+      <div>
+        <span class="error-word">${e.word}</span>
+        <span style="font-size:11px; color:var(--text-dim); margin-left:8px;">
+          ${e.type === 'phonotactics' ? '⚠ Règle phonotactique' : '🔤 Orthographe'}
+        </span>
+      </div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:3px;">${e.message}</div>
+      ${e.suggestions && e.suggestions.length ? `
+        <div class="error-suggestions">
+          Suggestions: ${e.suggestions.map(s =>
+            `<span onclick="replaceWord('${e.word}','${s}')">${s}</span>`
+          ).join('')}
+        </div>` : ''}
+    </div>
+  `).join('');
+
+  div.innerHTML = `
+    <div class="result-card" style="border-color:var(--accent3)">
+      <h4>Erreurs (${data.error_count})</h4>
+      ${html}
+    </div>`;
+}
+
+function renderNLP(sentiment, ner, stats) {
+  const div = document.getElementById('nlp-results');
+  let html = '';
+
+  if (stats) {
+    html += `
+      <div class="result-card">
+        <h4>📊 Statistiques</h4>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="val">${stats.word_count}</div><div class="lbl">Mots</div></div>
+          <div class="stat-box"><div class="val">${stats.sentence_count}</div><div class="lbl">Phrases</div></div>
+          <div class="stat-box"><div class="val">${stats.char_count}</div><div class="lbl">Caractères</div></div>
+          <div class="stat-box"><div class="val">${stats.avg_word_length}</div><div class="lbl">Moy. lettres/mot</div></div>
+        </div>
+      </div>`;
+  }
+
+  if (sentiment) {
+    const fillPct = Math.round((sentiment.score + 1) / 2 * 100);
+    const fillColor = sentiment.label === 'positif' ? 'var(--positive)' :
+                      sentiment.label === 'négatif' ? 'var(--negative)' : 'var(--neutral)';
+    html += `
+      <div class="result-card">
+        <h4>❤ Analyse de Sentiment</h4>
+        <div class="sentiment-label ${sentiment.label}">
+          <div class="dot"></div> ${sentiment.label.toUpperCase()}
+        </div>
+        <div class="sentiment-meter">
+          <div class="sentiment-fill" style="width:${fillPct}%; background:${fillColor};"></div>
+        </div>
+        <div style="font-size:12px; color:var(--text-dim);">
+          Score: ${sentiment.score} · Confiance: ${Math.round(sentiment.confidence * 100)}%
+        </div>
+        ${sentiment.positive_words.length ? `
+          <div class="section-title">Mots positifs</div>
+          <div class="tag-list">${sentiment.positive_words.map(w => `<span class="pill" style="color:var(--positive)">${w}</span>`).join('')}</div>
+        ` : ''}
+        ${sentiment.negative_words.length ? `
+          <div class="section-title">Mots négatifs</div>
+          <div class="tag-list">${sentiment.negative_words.map(w => `<span class="pill" style="color:var(--negative)">${w}</span>`).join('')}</div>
+        ` : ''}
+      </div>`;
+  }
+
+  if (ner) {
+    const allEntities = ner.all_entities || [];
+    if (allEntities.length === 0) {
+      html += `<div class="result-card"><h4>🏙 Entités Nommées</h4><div class="empty-state">Aucune entité détectée.</div></div>`;
+    } else {
+      html += `
+        <div class="result-card">
+          <h4>🏙 Entités Nommées (${allEntities.length})</h4>
+          <div class="tag-list">
+            ${allEntities.map(e => `
+              <span class="entity-tag">
+                ${e.text}
+                <span class="et-type et-${e.type}">${e.type}</span>
+              </span>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+  }
+
+  div.innerHTML = html || '<div class="empty-state">Aucune donnée NLP.</div>';
+}
+
+// ─── Lemmatisation ───────────────────────────────────────────────────────
+
+async function lemmatizeWord() {
+  const word = document.getElementById('lemma-input').value.trim();
+  if (!word) return;
+
+  const div = document.getElementById('lemma-results');
+  div.innerHTML = '<div class="empty-state">Analyse... <span class="loading"></span></div>';
+
+  try {
+    const res = await fetch(`${API}/lemmatize`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({word})
+    });
+    const data = await res.json();
+
+    let html = `
+      <div class="result-card">
+        <h4>📖 Lemmatisation</h4>
+        <div style="font-size:14px; color:var(--text-dim); margin-bottom:4px;">
+          <strong style="color:var(--text)">${data.original}</strong> →
+        </div>
+        <div class="lemma-result">${data.lemma}</div>
+        <div class="lemma-method">méthode: ${data.method}</div>
+        ${data.definition ? `<div style="font-size:13px; color:var(--text-dim); margin-bottom:12px;">${data.definition}</div>` : ''}
+        ${data.verb_forms && data.verb_forms.length ? `
+          <div class="section-title">Formes verbales</div>
+          ${data.verb_forms.map(f => `
+            <div class="verb-form-item">
+              <span class="vf-word">${f.form}</span>
+              <span class="vf-type">${f.note}</span>
+            </div>
+          `).join('')}
+        ` : ''}
+        ${data.word_family && data.word_family.length ? `
+          <div class="section-title">Famille de mots</div>
+          <div class="tag-list">${data.word_family.map(w => `<span class="pill">${w}</span>`).join('')}</div>
+        ` : ''}
+      </div>`;
+
+    div.innerHTML = html;
+  } catch(e) {
+    div.innerHTML = `<div class="empty-state" style="color:var(--accent3)">Erreur: ${e.message}</div>`;
+  }
+}
+
+async function translateWord() {
+  const word = document.getElementById('translate-input').value.trim();
+  if (!word) return;
+
+  const div = document.getElementById('lemma-results');
+  div.innerHTML = '<div class="empty-state">Recherche... <span class="loading"></span></div>';
+
+  try {
+    const res = await fetch(`${API}/translate`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({word})
+    });
+    const data = await res.json();
+
+    div.innerHTML = `
+      <div class="result-card">
+        <h4>🌐 Traduction</h4>
+        <div class="lemma-result">${data.word}</div>
+        <div style="font-size:16px; color:var(--text); line-height:1.6; margin-top:8px;">
+          ${data.translation}
+        </div>
+        ${data.lemma_used && data.lemma_used !== data.word ? `
+          <div style="font-size:11px; color:var(--text-dim); margin-top:8px;">
+            Via racine: <em>${data.lemma_used}</em>
+          </div>` : ''}
+        <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">
+          Source: ${data.source} ${data.found ? '✓' : '(approximatif)'}
+        </div>
+      </div>`;
+  } catch(e) {
+    div.innerHTML = `<div class="empty-state" style="color:var(--accent3)">Erreur: ${e.message}</div>`;
+  }
+}
+
+// ─── Word tooltip (clic droit) ───────────────────────────────────────────
+
+async function showWordTooltip(word, x, y) {
+  const tooltip = document.getElementById('word-tooltip');
+
+  document.getElementById('wt-word').textContent = word;
+  document.getElementById('wt-def').textContent = 'Chargement...';
+  tooltip.style.left = `${x + 10}px`;
+  tooltip.style.top = `${y + 10}px`;
+  tooltip.style.display = 'block';
+
+  try {
+    const res = await fetch(`${API}/translate`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({word})
+    });
+    const data = await res.json();
+    document.getElementById('wt-def').textContent = data.translation || 'Non trouvé';
+  } catch(e) {
+    document.getElementById('wt-def').textContent = 'Erreur de connexion';
+  }
+}
+
+function hideTooltip() {
+  document.getElementById('word-tooltip').style.display = 'none';
+}
+
+document.addEventListener('click', () => hideTooltip());
+
+// ─── Chatbot ─────────────────────────────────────────────────────────────
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = '';
+
+  const chatDiv = document.getElementById('chat-messages');
+  chatDiv.innerHTML += `<div class="msg user">${escapeHtml(message)}</div>`;
+  chatDiv.innerHTML += `<div class="msg bot" id="bot-typing">... <span class="loading"></span></div>`;
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message})
+    });
+    const data = await res.json();
+
+    document.getElementById('bot-typing').outerHTML =
+      `<div class="msg bot">${renderMarkdown(data.response)}</div>`;
+  } catch(e) {
+    document.getElementById('bot-typing').outerHTML =
+      `<div class="msg bot" style="color:var(--accent3)">Erreur de connexion au serveur.</div>`;
+  }
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+function renderMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^•\s+/gm, '• ')
+    .replace(/\n/g, '<br>');
+}
+
+// ─── Utilitaires ─────────────────────────────────────────────────────────
+
+function showTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  const idx = ['tab-spell','tab-nlp','tab-lemma','tab-chat'].indexOf(tabId);
+  document.querySelectorAll('.tab')[idx]?.classList.add('active');
+}
+
+function replaceWord(oldWord, newWord) {
+  editor.value = editor.value.replace(new RegExp('\\b' + oldWord + '\\b', 'g'), newWord);
+}
+
+function clearEditor() { editor.value = ''; updateWordCount(); }
+
+function loadSample() {
+  editor.value = `Ny fitiavana no valim-pitia amin'ny Malagasy rehetra.
+Mianatra mafy ny mpianatra mba hahazoana fahombiazana.
+Mahafinaritra ny tontolo iainana eto Antananarivo sy Antsirabe.
+Ny dokotera sy ny mpampianatra dia olona tena manan-danja amin'ny fiaraha-monina.
+Tsy tsara ny manao ratsy fa ny fahendrena no lalana mankany amin'ny soa.`;
+  updateWordCount();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
+}
+
+// ─── Démarrage ───────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
